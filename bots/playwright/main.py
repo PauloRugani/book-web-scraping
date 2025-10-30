@@ -1,10 +1,11 @@
 from playwright.sync_api import Playwright, ElementHandle, BrowserContext
-from .constants.PlaywrightConstant import PlaywrightConstant
+from ..constants.main import PlaywrightConstants, Constants
 from typing import List, Dict
 import pandas as pd
 from .utils.PlaywrightHandler import PlaywrightHandler
 from .utils.SearchStringToUrl import SearchStringToUrl
 import os
+from time import sleep
 
 class BookDataExtractorPw:
     def __init__(self, playwright: Playwright, search_string: str, page_amount: int=30):
@@ -30,17 +31,17 @@ class BookDataExtractorPw:
                     continue
 
                 book_page = context.new_page()
-                book_page.goto(PlaywrightConstant.URL + href)
+                book_page.goto(Constants.URL + href)
 
                 try:
-                    book_title: str = book_page.locator(PlaywrightConstant.BOOK_TITLE).inner_text(timeout=2000)
+                    book_title: str = book_page.locator(PlaywrightConstants.BOOK_TITLE).inner_text(timeout=2000)
                 except Exception:
                     book_title = None
 
                 try:
                     book_rating: str = (
                                         book_page.locator(
-                                        PlaywrightConstant.BOOK_RATING)
+                                        PlaywrightConstants.BOOK_RATING)
                                         .inner_text(timeout=2000)
                                         .split('\n')[0]
                                         .strip()
@@ -50,7 +51,7 @@ class BookDataExtractorPw:
 
                 try:
                     book_description: str = (
-                                            book_page.locator(PlaywrightConstant.BOOK_DESCRIPTION)
+                                            book_page.locator(PlaywrightConstants.BOOK_DESCRIPTION)
                                             .inner_text(timeout=2000) 
                                             .replace('\n', '')[:200]
                                             ) 
@@ -58,7 +59,7 @@ class BookDataExtractorPw:
                     book_description = None
 
                 try:
-                    contributions: str = book_page.query_selector_all(PlaywrightConstant.BOOK_CONTRIBUTIONS)
+                    contributions: str = book_page.query_selector_all(PlaywrightConstants.BOOK_CONTRIBUTIONS)
                     len_contributions = len(contributions)
                     list_authors = (
                                     [book_page.locator(f'//*[@id="bylineInfo"]/span[{i}]/a').inner_text(timeout=2000)
@@ -85,21 +86,21 @@ class BookDataExtractorPw:
         return books
 
     def run(self) -> None:
-
+        sleep(0.5)
         items: List[Dict[str, str]] = []
         site_page: int = 1
 
         while site_page <= self.__page_amount:
             self.__playwright_handler.page.goto(self.__search_string_to_url.get_url(f'&i=stripbooks&page={site_page}'))
                                     
-            elements = self.__playwright_handler.page.query_selector_all(PlaywrightConstant.BOOKS_LIST)
+            elements = self.__playwright_handler.page.query_selector_all(PlaywrightConstants.BOOKS_LIST)
             if not elements:
                 break
 
             books_data = self.__get_books_data(context=self.__playwright_handler.context, book_list=elements)
             items.extend(books_data)
 
-            total_books = self.__playwright_handler.page.locator(PlaywrightConstant.PAGE_AMOUNT_BOOK).inner_text().split(' ')[2]
+            total_books = self.__playwright_handler.page.locator(PlaywrightConstants.PAGE_AMOUNT_BOOK).inner_text().split(' ')[2]
             if len(books_data) >= int(total_books):
                 print('Todos os livros da busca obtidos!')
                 break
