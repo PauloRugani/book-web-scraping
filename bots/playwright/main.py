@@ -6,7 +6,7 @@ from .utils.PlaywrightHandler import PlaywrightHandler
 from .utils.SearchStringToUrl import SearchStringToUrl
 import os
 
-class BookDataExtractor:
+class BookDataExtractorPw:
     def __init__(self, playwright: Playwright, search_string: str, page_amount: int=30):
         self.__search_string = search_string #NOSONAR
         self.__page_amount = page_amount
@@ -106,7 +106,7 @@ class BookDataExtractor:
 
             site_page += 1
 
-        BookDataExtractor.save_to_csv(items)
+        BookDataExtractorPw.save_to_csv(items)
 
         self.__playwright_handler.context.close()
         self.__playwright_handler.browser.close()
