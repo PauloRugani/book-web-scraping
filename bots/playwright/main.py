@@ -1,85 +1,111 @@
-import re
-from playwright.sync_api import Playwright, sync_playwright, ElementHandle, Page, BrowserContext
-from time import sleep
+from playwright.sync_api import Playwright, ElementHandle, BrowserContext
 from .constants.PlaywrightConstant import PlaywrightConstant
-from typing import List, Dict, Any
+from typing import List, Dict
 import pandas as pd
+from .utils.PlaywrightHandler import PlaywrightHandler
+from .utils.SearchStringToUrl import SearchStringToUrl
 
-def parse_search_string(search_string: str) -> str:
-    search_string = search_string.lower()
-    search_string = re.sub(r"[^\w\s]", '', search_string)
-    search_string = re.sub(r'\s+', ' ', search_string).strip()
-    search_string = search_string.replace(' or ', ' + ').replace(' and ', ' + ')
-    return search_string
+class BookDataExtractor:
+    def __init__(self, playwright: Playwright, search_string: str, amount: int=30):
+        self.__search_string = search_string
+        self.__amount = amount
+        self.__playwright_handler = PlaywrightHandler(playwright)
+        self.__search_string_to_url = SearchStringToUrl(search_string)
 
-def string_to_url(base_url: str, parse_search_string: str, filter: str = '') -> str:
-    url_string = base_url + f's?k={parse_search_string.replace("+", "%2B").replace(" ", "+")}' + filter
-    return url_string
+    @staticmethod
+    def save_to_csv(data: List[Dict[str, str]]) -> None:
+        df = pd.DataFrame(data)
+        df.to_csv(r'C:\Users\phrug\OneDrive\Documentos\Repositórios\book-web-scraping\bots\playwright\books\books_data.csv', index=False, encoding='utf-8')
 
-def save_to_csv(data: List[Dict[str, str]]) -> None:
-    df = pd.DataFrame(data)
-    df.to_csv(r'./books/books_data.csv', index=False, encoding='utf-8')
+    def __get_books_data(self, context: BrowserContext, book_list: List[ElementHandle]):
+        books: List[Dict[str, str]] = []
+        for book in book_list:
+            try:
+                href = book.query_selector('a').get_attribute('href')
+                if not href:
+                    print('Link da página não encontrada')
+                    continue
 
-def get_book_data(context: BrowserContext, book_list: List[ElementHandle]):
-    books: List[Dict[str, str]] = []
-    for book in book_list:
-        try:
-            href = book.query_selector('a').get_attribute('href') # vai para a pagina do livro
+                book_page = context.new_page()
+                book_page.goto(PlaywrightConstant.URL + href)
+
+                try:
+                    book_title: str = book_page.locator(PlaywrightConstant.BOOK_TITLE).inner_text(timeout=2000)
+                except Exception:
+                    book_title = None
+
+                try:
+                    book_rating: str = (
+                                        book_page.locator(
+                                        PlaywrightConstant.BOOK_RATING)
+                                        .inner_text(timeout=2000)
+                                        .split('\n')[0]
+                                        .strip()
+                                        )
+                except Exception:
+                    book_rating = None
+
+                try:
+                    book_description: str = (
+                                            book_page.locator(PlaywrightConstant.BOOK_DESCRIPTION)
+                                            .inner_text(timeout=2000) 
+                                            .replace('\n', '')[:200]
+                                            ) 
+                except Exception:
+                    book_description = None
+
+                try:
+                    contributions: str = book_page.query_selector_all(PlaywrightConstant.BOOK_CONTRIBUTIONS)
+                    len_contributions = len(contributions)
+                    list_authors = (
+                                    [book_page.locator(f'//*[@id="bylineInfo"]/span[{i}]/a').inner_text(timeout=2000)
+                                    for i in range(1, len_contributions + 1)] 
+                                    if len_contributions > 1 
+                                    else [book_page.locator('//*[@id="bylineInfo"]/span/a').inner_text(timeout=2000)]
+                                    )
+                except Exception:
+                    list_authors = []
+
+                books.append({
+                    'title': book_title,
+                    'rating': book_rating,
+                    'description': book_description,
+                    'author': list_authors
+                })
+
+            except Exception as e:
+                print(f'{e}')
             
-            book_page = context.new_page()
-            book_page.goto(PlaywrightConstant.URL + href)
+            finally:
+                book_page.close()
 
-            try:
-                book_title: str = book_page.locator(PlaywrightConstant.BOOK_TITLE).inner_text(timeout=2000)
-            except Exception:
-                book_title = None
+        return books
 
-            try:
-                book_rating: str = book_page.locator(PlaywrightConstant.BOOK_RATING).inner_text(timeout=2000).split('\n')[0].strip()
-            except Exception:
-                book_rating = None
+    def run(self) -> None:
 
-            try:
-                book_description: str = book_page.locator(PlaywrightConstant.BOOK_DESCRIPTION).inner_text(timeout=2000)
-            except Exception:
-                book_description = None
+        items: List[Dict[str, str]] = []
+        book_amount_counter: int = 0
+        site_page: int = 1
 
-            try:
-                book_author: str = book_page.locator(PlaywrightConstant.BOOK_AUTHOR).inner_text(timeout=2000)
-            except Exception:
-                book_author = None
+        while book_amount_counter < self.__amount:
+            self.__playwright_handler.page.goto(self.__search_string_to_url.get_url(f'&i=stripbooks&page={site_page}'))
+                                    
+            elements = self.__playwright_handler.page.query_selector_all(PlaywrightConstant.BOOKS_LIST)
+            if not elements:
+                break
 
-            book_data: Dict[str, str] = {
-                'title': book_title,
-                'rating': book_rating,
-                'description': book_description,
-                'author': book_author
-            }
+            books_data = self.__get_books_data(context=self.__playwright_handler.context, book_list=elements)
+            items.extend(books_data)
 
-            books.append(book_data)
-        except Exception as e:
-            print(f'pqp ta entrnado aqui {e}')
-        
-        finally:
-            book_page.close()
+            total_books = self.__playwright_handler.page.locator(PlaywrightConstant.PAGE_AMOUNT_BOOK).inner_text().split(' ')[2]
+            if len(books_data) >= int(total_books):
+                print('Todos os livros da busca obtidos!')
+                break
 
-    return books
+            book_amount_counter += len(books_data)
+            site_page += 1
 
-def run(playwright: Playwright) -> None:
-    browser = playwright.chromium.launch(headless=False)
-    context = browser.new_context()
-    page = context.new_page()
+        BookDataExtractor.save_to_csv(items)
 
-    items: List[Dict[str, str]] = []
-    for i in range(1, 4):
-        page.goto(string_to_url(PlaywrightConstant.URL, 
-             parse_search_string('cura quantica and energia and chakras and reiki and lei da atracao and cura natural'), f'&i=stripbooks&page={i}'))
-    
-        elementos = page.query_selector_all(PlaywrightConstant.BOOKS_LIST) # por algum motivo so pega 16
-        book_data = get_book_data(context=context, book_list=elementos)
-        items = items + book_data
-
-    save_to_csv(items)
-
-    context.close()
-    browser.close()
+        self.__playwright_handler.context.close()
+        self.__playwright_handler.browser.close()
