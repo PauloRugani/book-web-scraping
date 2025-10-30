@@ -1,5 +1,5 @@
 import re
-
+from ..constants.PlaywrightConstant import PlaywrightConstant
 class SearchStringToUrl:
     def __init__(self, search_string: str) -> None:
         self.search_string = search_string
@@ -13,7 +13,7 @@ class SearchStringToUrl:
 
     def __string_to_url(self, clean_string: str, filter: str) -> str:
         query = clean_string.replace("+", "%2B").replace(" ", "+")
-        url_string = f'{self.base_url}s?k={query}{filter}'
+        url_string = f'{PlaywrightConstant.URL}s?k={query}{filter}'
         return url_string
 
     def get_url(self, filter) -> str:
