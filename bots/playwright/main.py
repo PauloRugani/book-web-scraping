@@ -4,18 +4,21 @@ from typing import List, Dict
 import pandas as pd
 from .utils.PlaywrightHandler import PlaywrightHandler
 from .utils.SearchStringToUrl import SearchStringToUrl
+import os
 
 class BookDataExtractor:
-    def __init__(self, playwright: Playwright, search_string: str, amount: int=30):
-        self.__search_string = search_string
-        self.__amount = amount
+    def __init__(self, playwright: Playwright, search_string: str, page_amount: int=30):
+        self.__search_string = search_string #NOSONAR
+        self.__page_amount = page_amount
         self.__playwright_handler = PlaywrightHandler(playwright)
         self.__search_string_to_url = SearchStringToUrl(search_string)
 
     @staticmethod
     def save_to_csv(data: List[Dict[str, str]]) -> None:
+        if not os.path.exists('./bots/playwright/data'):
+            os.mkdir('./bots/playwright/data')
         df = pd.DataFrame(data)
-        df.to_csv(r'C:\Users\phrug\OneDrive\Documentos\Repositórios\book-web-scraping\bots\playwright\books\books_data.csv', index=False, encoding='utf-8')
+        df.to_csv('./bots/playwright/data/books_data.csv', index=False, encoding='utf-8')
 
     def __get_books_data(self, context: BrowserContext, book_list: List[ElementHandle]):
         books: List[Dict[str, str]] = []
@@ -84,10 +87,9 @@ class BookDataExtractor:
     def run(self) -> None:
 
         items: List[Dict[str, str]] = []
-        book_amount_counter: int = 0
         site_page: int = 1
 
-        while book_amount_counter < self.__amount:
+        while site_page <= self.__page_amount:
             self.__playwright_handler.page.goto(self.__search_string_to_url.get_url(f'&i=stripbooks&page={site_page}'))
                                     
             elements = self.__playwright_handler.page.query_selector_all(PlaywrightConstant.BOOKS_LIST)
@@ -102,7 +104,6 @@ class BookDataExtractor:
                 print('Todos os livros da busca obtidos!')
                 break
 
-            book_amount_counter += len(books_data)
             site_page += 1
 
         BookDataExtractor.save_to_csv(items)
