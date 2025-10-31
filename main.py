@@ -5,7 +5,7 @@ from bots.selenium.main import BookDataExtractorSel
 bot = input('bot[selenium, playwright]: ')
 match bot:
     case 'selenium':
-        data_extractor = BookDataExtractorSel(r'C:\Users\phrug\OneDrive\Documentos\Repositórios\book-web-scraping\bots\selenium\driver\chromedriver.exe',
+        data_extractor = BookDataExtractorSel(r'bots\selenium\driver\chromedriver.exe',
                                 'cura quantica and energia and chakras and reiki and lei da atracao and cura natural',
                                 page_amount=1)
         data_extractor.run()  
