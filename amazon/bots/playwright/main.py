@@ -1,13 +1,13 @@
 from playwright.sync_api import Playwright, ElementHandle, BrowserContext
-from ..constants.main import PlaywrightConstants, Constants
+from ...constants.main import Constants, PlaywrightConstants
 from typing import List, Dict
 import pandas as pd
 from .utils.PlaywrightHandler import PlaywrightHandler
-from .utils.SearchStringToUrl import SearchStringToUrl
+from ...utils.SearchStringToUrl import SearchStringToUrl
 import os
 from time import sleep
 
-class BookDataExtractorPw:
+class AmazonBookExtractorPw:
     def __init__(self, playwright: Playwright, search_string: str, page_amount: int=30):
         self.__search_string = search_string #NOSONAR
         self.__page_amount = page_amount
@@ -16,10 +16,10 @@ class BookDataExtractorPw:
 
     @staticmethod
     def save_to_csv(data: List[Dict[str, str]]) -> None:
-        if not os.path.exists('./bots/playwright/data'):
-            os.mkdir('./bots/playwright/data')
+        if not os.path.exists('./amazon/bots/playwright/data'):
+            os.mkdir('./amazon/bots/playwright/data')
         df = pd.DataFrame(data)
-        df.to_csv('./bots/playwright/data/books_data.csv', index=False, encoding='utf-8')
+        df.to_csv('./amazon/bots/playwright/data/books_data.csv', index=False, encoding='utf-8')
 
     def __get_books_data(self, context: BrowserContext, book_list: List[ElementHandle]):
         books: List[Dict[str, str]] = []
@@ -107,7 +107,7 @@ class BookDataExtractorPw:
 
             site_page += 1
 
-        BookDataExtractorPw.save_to_csv(items)
+        AmazonBookExtractorPw.save_to_csv(items)
 
         self.__playwright_handler.context.close()
         self.__playwright_handler.browser.close()

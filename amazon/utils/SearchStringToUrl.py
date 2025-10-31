@@ -1,5 +1,5 @@
 import re
-from constants.main import Constants
+from ..constants.main import Constants
 class SearchStringToUrl:
     def __init__(self, search_string: str) -> None:
         self.search_string = search_string

@@ -3,26 +3,27 @@ import pandas as pd
 from typing import List, Dict
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
-from ..constants.main import SeleniumConstants
+from amazon.constants.main import SeleniumConstants
 from selenium.webdriver.common.keys import Keys
 from .utils.SeleniumHandler import SeleniumHandler
-from .utils.SearchStringToUrl import SearchStringToUrl
+from ...utils.SearchStringToUrl import SearchStringToUrl
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 
-class BookDataExtractorSel:
-    def __init__(self, driver_url: str, search_string: str, page_amount: int=30):
+# print(SeleniumConstants.CHROME_DRIVER_PATH)
+class AmazonBookExtractorSel:
+    def __init__(self, search_string: str, page_amount: int=30):
         self.__page_amount = page_amount
-        self.__selenium_handler = SeleniumHandler(driver_url)
+        self.__selenium_handler = SeleniumHandler(SeleniumConstants.CHROME_DRIVER_PATH)
         self.__search_string_to_url = SearchStringToUrl(search_string)
 
     @staticmethod
     def save_to_csv(data: List[Dict[str, str]]) -> None:
-        if not os.path.exists('./bots/selenium/data'):
-            os.mkdir('./bots/selenium/data')
+        if not os.path.exists('./amazon/bots/selenium/data'):
+            os.mkdir('./amazon/bots/selenium/data')
         df = pd.DataFrame(data)
-        df.to_csv('./bots/selenium/data/books_data.csv', index=False, encoding='utf-8')
+        df.to_csv('./amazon/bots/selenium/data/books_data.csv', index=False, encoding='utf-8')
 
     def __get_books_data(self, book_list: List[WebElement]):
         books: List[Dict[str, str]] = []
@@ -119,7 +120,7 @@ class BookDataExtractorSel:
 
             site_page += 1
 
-        BookDataExtractorSel.save_to_csv(items)
+        AmazonBookExtractorSel.save_to_csv(items)
 
         self.__selenium_handler.driver.close()
 
