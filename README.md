@@ -41,4 +41,4 @@ The scraped data serves as an initial dataset for classification and pattern rec
 
 ## Academic Context
 
-- Developed as part of a presentation project at the Federal University of Sergipe (UFS), this work demonstrates how data science, web scraping, and automation (RPA) techniques can be applied to detect and analyze materials that potentially spread pseudoscience or misinformation.
+- Developed as part of a [LADATA](https://github.com/ladata-ufs) presentation project at the Federal University of Sergipe (UFS), this work demonstrates how data science, web scraping, and automation (RPA) techniques can be applied to detect and analyze materials that potentially spread pseudoscience or misinformation.
