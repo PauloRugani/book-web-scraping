@@ -3,10 +3,9 @@ import pandas as pd
 from typing import List, Dict
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
-from amazon.constants.main import SeleniumConstants
 from selenium.webdriver.common.keys import Keys
 from .utils.SeleniumHandler import SeleniumHandler
-from ...utils.SearchStringToUrl import SearchStringToUrl
+from amazon import SeleniumConstants, SearchStringToUrl
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC

@@ -1,9 +1,8 @@
 from playwright.sync_api import Playwright, ElementHandle, BrowserContext
-from ...constants.main import Constants, PlaywrightConstants
+from amazon import Constants, PlaywrightConstants, SearchStringToUrl
 from typing import List, Dict
 import pandas as pd
 from .utils.PlaywrightHandler import PlaywrightHandler
-from ...utils.SearchStringToUrl import SearchStringToUrl
 import os
 from time import sleep
 
