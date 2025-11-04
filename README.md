@@ -1,6 +1,6 @@
 # Book Web Scraping
 
-This project is a web scraping tool developed to collect detailed information about books from Amazon and Google Books. It retrieves data such as title, rating, description, and authors.
+This project is a web scraping tool developed to collect detailed information about books from Google Books. It retrieves data such as title, rating, description, and authors.
 
 ## Search Logic
 
@@ -32,7 +32,7 @@ Example:
 
     - Description
 
-    - Rating (if available)
+    - Book Link
 
 ## Project Goal
 
