@@ -32,7 +32,7 @@ Example:
 
     - Description
 
-    - Rating (if available)
+    - Book Link
 
 ## Project Goal
 
