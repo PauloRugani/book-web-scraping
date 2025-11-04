@@ -7,7 +7,7 @@ import os
 import re
 
 
-class GoogleBooksAPIScraper():
+class GoogleBooksFetcher():
     def __init__(self, search_string: str, amount: str):
         self.search_string = search_string
         self.amount = amount
@@ -52,4 +52,4 @@ class GoogleBooksAPIScraper():
                 'author': info.get('authors')
             })
 
-        GoogleBooksAPIScraper.save_to_csv(items)
+        GoogleBooksFetcher.save_to_csv(items)
