@@ -1,5 +1,6 @@
 import requests
-from google import Constants, APIBotConstants
+from .constants.main import APIBotConstants
+from constants.main import Constants
 import pandas as pd
 from typing import List, Dict
 import os
@@ -42,7 +43,6 @@ class GoogleBooksAPIScraper():
 
         books = response.json()
         items = []
-        print(books)
         for book in books.get('items', []):
             info = book.get('volumeInfo', {})
             items.append({
